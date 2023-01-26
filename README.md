@@ -4,4 +4,4 @@ Project still under development to simulate situations involving communication b
 
 Model for sending messages between different threads
 
-![alt text](path/to/file)
+![alt text](https://github.com/rodrigmars/Automationqueue/blob/main/images/teste_thread.drawio.png?raw=true)
