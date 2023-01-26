@@ -22,7 +22,7 @@ def main(queue: Queue):
 
     def producer_bot_two(queue: Queue, code: float):
         
-        print('producer_bot_two: executando...')
+        print('producer_bot_two: running...')
         
         queue.put({"producer_bot_two": [code]})
         
