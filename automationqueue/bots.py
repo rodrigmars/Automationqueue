@@ -1,11 +1,11 @@
 import threading
 import logging
+from enum import Enum
 from time import sleep
 from random import random
 from queue import Queue, Empty
 from sqlite3 import Connection, connect
 from typing import Callable, List, TypedDict, Optional
-
 
 class CrawlerService(TypedDict):
     capture_bot: threading.Thread
@@ -14,7 +14,13 @@ class CrawlerService(TypedDict):
     failures: list[str]
 
 
-def crawler(queue: Queue) -> CrawlerService:
+class ThreadsBots(Enum):
+    CAPTURE_BOT = 1
+    INTERSECTION_BOT = 2
+    CONSUMER = 3
+
+
+def crawler(db_file: str, queue: Queue) -> CrawlerService:
 
     failures: List[str] = []
 
@@ -26,7 +32,7 @@ def crawler(queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: running...')
 
-        queue.put({label: [code]})
+        queue.put({ThreadsBots.CAPTURE_BOT: [code]})
 
         sleep(code)
 
@@ -48,22 +54,24 @@ def crawler(queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: done')
 
-    def consumer(queue: Queue, code: float):
+    def consumer(queue: Queue, code: float, db_file: str):
 
         conn: Optional[Connection] = None
         
         label = "Consumer"
 
         logging.info(f'{label}: running...')
-    
+
         while True:
 
             try:
                 item = queue.get(block=False)
 
-                conn = connect(":memory:")
+                # con = connect(db_file)
+                
+                # cur = con.cursor()
 
-                conn.commit()
+                # conn.commit()
 
             except Empty:
                 logging.info(f'{label}: No messages, waiting...')
@@ -83,15 +91,23 @@ def crawler(queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: done')
 
-    def thread_factory(fn: Callable[[Queue, float], None], code: float) -> threading.Thread:
+    def thread_producer(fn: Callable[[Queue, float], None], code: float) -> threading.Thread:
         return threading.Thread(target=fn, args=(queue, code))
+
+    def thread_consumer(fn: Callable[[Queue, float, str], None],
+                        code: float,
+                        db_file: str) -> threading.Thread:
+
+        return threading.Thread(target=fn, args=(queue, code, db_file))
+
 
     def except_hook(args) -> None:
         failures.append(f'Thread failed!!: {args.exc_value}')
 
     threading.excepthook = except_hook
 
-    return {"capture_bot": thread_factory(producer_capture_bot, get_code()),
-            "intersection_bot": thread_factory(producer_intersection_bot, get_code()),
-            "consumer": thread_factory(consumer, .5),
+    return {"capture_bot": thread_producer(producer_capture_bot, get_code()),
+            "intersection_bot": thread_producer(producer_intersection_bot, get_code()),
+            "consumer": thread_consumer(consumer, .5, db_file),
             "failures": failures}
+

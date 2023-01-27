@@ -5,11 +5,13 @@ from sys import exit, stderr
 from queue import Queue
 from bots import crawler
 from traceback import print_exception
+from infra.querys.tables import create_tables
+from dotenv import dotenv_values
 
 
-def genesis() -> None:
+def genesis(db_file: str) -> None:
 
-    bots = crawler(Queue())
+    bots = crawler(db_file, Queue())
 
     bots["consumer"].start()
     bots["capture_bot"].start()
@@ -24,6 +26,8 @@ def genesis() -> None:
 
 
 if __name__ == "__main__":
+    
+    failed: int = 0
 
     try:
 
@@ -31,12 +35,21 @@ if __name__ == "__main__":
                             encoding='utf-8',
                             level=logging.DEBUG)
 
-        genesis()
+        config = dotenv_values(".env")
+
+        if not (db_file := config.get("DB_FILE")) is None:
+            if not (err := create_tables(db_file)) is None:
+                raise Exception(err)
+
+            genesis(db_file)
+
+        else:
+            raise Exception("Missing db_file value")
 
     except Exception as e:
 
         print_exception(type(e), e, e.__traceback__, file=stderr)
 
-        exit(os.EX_SOFTWARE)
+        failed = 1
 
-    exit(os.EX_OK)
+    exit(os.EX_OK if failed < 1 else os.EX_SOFTWARE)
