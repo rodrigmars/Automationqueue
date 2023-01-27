@@ -1,20 +1,20 @@
 import os
+import logging
 from sys import exit, stderr
 from queue import Queue
 from traceback import print_exception
-from bots import bots_service
-
+from bots import crawler
 
 def genesis():
 
-    bots = bots_service(Queue())
+    bots = crawler(Queue())
 
     bots["consumer"].start()
-    bots["bot_one"].start()
-    bots["bot_two"].start()
+    bots["capture_bot"].start()
+    bots["intersection_bot"].start()
 
-    bots["bot_one"].join()
-    bots["bot_two"].join()
+    bots["capture_bot"].join()
+    bots["intersection_bot"].join()
     bots["consumer"].join()
 
     if bots["failures"] != []:
@@ -24,6 +24,9 @@ def genesis():
 if __name__ == "__main__":
 
     try:
+        logging.basicConfig(filename='bot.log',
+                            encoding='utf-8',
+                            level=logging.DEBUG)
         genesis()
 
     except Exception as e:

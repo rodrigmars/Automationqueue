@@ -1,66 +1,74 @@
 import threading
+import logging
 from time import sleep
 from random import random
 from queue import Queue, Empty
 from typing import Callable, List, TypedDict
 
 class BotsService(TypedDict):
-    bot_one: threading.Thread
-    bot_two: threading.Thread
+    capture_bot: threading.Thread
+    intersection_bot: threading.Thread
     consumer: threading.Thread
     failures: list[str]
 
-def bots_service(queue: Queue) -> BotsService:
+
+def crawler(queue: Queue) -> BotsService:
 
     failures: List[str] = []
 
     def get_code() -> float: return random()
 
-    def producer_bot_one(queue: Queue, code: float):
+    def producer_capture_bot(queue: Queue, code: float):
 
-        print('producer_bot_one: running...')
+        label = "producer_capture_bot"
 
-        queue.put({"producer_bot_one": [code]})
+        logging.info(f'{label}: running...')
 
-        sleep(code)
-
-        queue.put(None)
-
-        print('producer_bot_one: done')
-
-    def producer_bot_two(queue: Queue, code: float):
-
-        print('producer_bot_two: running...')
-
-        queue.put({"producer_bot_two": [code]})
+        queue.put({label: [code]})
 
         sleep(code)
 
         queue.put(None)
 
-        print('producer_bot_two: done')
+        logging.info(f'{label}: done')
+
+    def producer_intersection_bot(queue: Queue, code: float):
+
+        label = "producer_intersection_bot"
+
+        logging.info(f'{label}: running...')
+
+        queue.put({label: [code]})
+
+        sleep(code)
+
+        queue.put(None)
+
+        logging.info(f'{label}: done')
 
     def consumer(queue: Queue, code: float):
 
-        print('Consumer: running...')
+        label = "Consumer"
+
+        logging.info(f'{label}: running...')
 
         while True:
 
             try:
                 item = queue.get(block=False)
             except Empty:
-                print('Producer: No messages, waiting...')
+                logging.info(f'{label}: No messages, waiting...')
                 sleep(code)
                 continue
-            
+
             if item is None:
                 break
 
-            print(f'Message:{item}')
-   
+            logging.info(f'Message:{item}')
+
         queue.task_done()
 
-        print('Consumer: done')
+        logging.info(f'{label}: done')
 
     def thread_factory(fn: Callable[[Queue, float], None], code: float) -> threading.Thread:
         return threading.Thread(target=fn, args=(queue, code))
@@ -70,7 +78,7 @@ def bots_service(queue: Queue) -> BotsService:
 
     threading.excepthook = except_hook
 
-    return {"bot_one": thread_factory(producer_bot_one, get_code()),
-                                           "bot_two": thread_factory(producer_bot_two, get_code()),
-                                           "consumer": thread_factory(consumer, .5),
-                                           "failures": failures}
+    return {"capture_bot": thread_factory(producer_capture_bot, get_code()),
+            "intersection_bot": thread_factory(producer_intersection_bot, get_code()),
+            "consumer": thread_factory(consumer, .5),
+            "failures": failures}
