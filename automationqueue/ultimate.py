@@ -1,3 +1,4 @@
+
 import os
 import logging
 from sys import exit, stderr
@@ -25,12 +26,15 @@ def genesis() -> None:
 if __name__ == "__main__":
 
     try:
+
         logging.basicConfig(filename='bot.log',
                             encoding='utf-8',
                             level=logging.DEBUG)
+
         genesis()
 
     except Exception as e:
+
         print_exception(type(e), e, e.__traceback__, file=stderr)
 
         exit(os.EX_SOFTWARE)

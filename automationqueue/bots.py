@@ -3,7 +3,8 @@ import logging
 from time import sleep
 from random import random
 from queue import Queue, Empty
-from typing import Callable, List, TypedDict
+from sqlite3 import Connection, connect
+from typing import Callable, List, TypedDict, Optional
 
 
 class CrawlerService(TypedDict):
@@ -49,18 +50,29 @@ def crawler(queue: Queue) -> CrawlerService:
 
     def consumer(queue: Queue, code: float):
 
+        conn: Optional[Connection] = None
+        
         label = "Consumer"
 
         logging.info(f'{label}: running...')
-
+    
         while True:
 
             try:
                 item = queue.get(block=False)
+
+                conn = connect(":memory:")
+
+                conn.commit()
+
             except Empty:
                 logging.info(f'{label}: No messages, waiting...')
                 sleep(code)
                 continue
+
+            finally:
+                if conn:
+                    conn.close()
 
             if item is None:
                 break
