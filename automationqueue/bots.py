@@ -5,14 +5,15 @@ from random import random
 from queue import Queue, Empty
 from typing import Callable, List, TypedDict
 
-class BotsService(TypedDict):
+
+class CrawlerService(TypedDict):
     capture_bot: threading.Thread
     intersection_bot: threading.Thread
     consumer: threading.Thread
     failures: list[str]
 
 
-def crawler(queue: Queue) -> BotsService:
+def crawler(queue: Queue) -> CrawlerService:
 
     failures: List[str] = []
 

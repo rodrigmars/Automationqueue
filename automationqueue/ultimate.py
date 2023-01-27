@@ -2,10 +2,11 @@ import os
 import logging
 from sys import exit, stderr
 from queue import Queue
-from traceback import print_exception
 from bots import crawler
+from traceback import print_exception
 
-def genesis():
+
+def genesis() -> None:
 
     bots = crawler(Queue())
 
@@ -17,8 +18,8 @@ def genesis():
     bots["intersection_bot"].join()
     bots["consumer"].join()
 
-    if bots["failures"] != []:
-        raise Exception(bots["failures"])
+    if [] != (failures := bots["failures"]):
+        raise Exception(failures)
 
 
 if __name__ == "__main__":
