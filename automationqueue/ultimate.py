@@ -2,23 +2,23 @@ import os
 from sys import exit, stderr
 from queue import Queue
 from traceback import print_exception
-from bots import bot_service
+from bots import bots_service
 
 
 def genesis():
 
-    params = bot_service(Queue())
+    bots = bots_service(Queue())
 
-    params["consumer"].start()
-    params["bot_one"].start()
-    params["bot_two"].start()
+    bots["consumer"].start()
+    bots["bot_one"].start()
+    bots["bot_two"].start()
 
-    params["bot_one"].join()
-    params["bot_two"].join()
-    params["consumer"].join()
+    bots["bot_one"].join()
+    bots["bot_two"].join()
+    bots["consumer"].join()
 
-    if params["failures"] != []:
-        raise Exception(params["failures"])
+    if bots["failures"] != []:
+        raise Exception(bots["failures"])
 
 
 if __name__ == "__main__":

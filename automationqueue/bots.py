@@ -2,11 +2,17 @@ import threading
 from time import sleep
 from random import random
 from queue import Queue, Empty
-from typing import Callable
+from typing import Callable, List, TypedDict
 
-def bot_service(queue: Queue):
+class BotsService(TypedDict):
+    bot_one: threading.Thread
+    bot_two: threading.Thread
+    consumer: threading.Thread
+    failures: list[str]
 
-    failures = []
+def bots_service(queue: Queue) -> BotsService:
+
+    failures: List[str] = []
 
     def get_code() -> float: return random()
 
@@ -59,11 +65,12 @@ def bot_service(queue: Queue):
     def thread_factory(fn: Callable[[Queue, float], None], code: float) -> threading.Thread:
         return threading.Thread(target=fn, args=(queue, code))
 
-    def except_hook(args):
+    def except_hook(args) -> None:
         failures.append(f'Thread failed!!: {args.exc_value}')
 
     threading.excepthook = except_hook
 
     return {"bot_one": thread_factory(producer_bot_one, get_code()),
-            "bot_two": thread_factory(producer_bot_two, get_code()),
-            "consumer": thread_factory(consumer, .5), "failures": failures}
+                                           "bot_two": thread_factory(producer_bot_two, get_code()),
+                                           "consumer": thread_factory(consumer, .5),
+                                           "failures": failures}
