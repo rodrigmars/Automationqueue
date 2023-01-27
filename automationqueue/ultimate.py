@@ -7,21 +7,18 @@ from bots import bot_service
 
 def genesis():
 
-    producer_bot_one, \
-        producer_bot_two, \
-        consumer, \
-        failures = bot_service(Queue())
+    params = bot_service(Queue())
 
-    consumer.start()
-    producer_bot_one.start()
-    producer_bot_two.start()
+    params["consumer"].start()
+    params["bot_one"].start()
+    params["bot_two"].start()
 
-    producer_bot_one.join()
-    producer_bot_two.join()
-    consumer.join()
+    params["bot_one"].join()
+    params["bot_two"].join()
+    params["consumer"].join()
 
-    if failures != []:
-        raise Exception(failures)
+    if params["failures"] != []:
+        raise Exception(params["failures"])
 
 
 if __name__ == "__main__":

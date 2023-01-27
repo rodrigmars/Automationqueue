@@ -64,6 +64,6 @@ def bot_service(queue: Queue):
 
     threading.excepthook = except_hook
 
-    return thread_factory(producer_bot_one, get_code()), \
-        thread_factory(producer_bot_two, get_code()), \
-        thread_factory(consumer, .5), failures
+    return {"bot_one": thread_factory(producer_bot_one, get_code()),
+            "bot_two": thread_factory(producer_bot_two, get_code()),
+            "consumer": thread_factory(consumer, .5), "failures": failures}
