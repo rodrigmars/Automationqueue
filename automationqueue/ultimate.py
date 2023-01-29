@@ -10,7 +10,7 @@ from dotenv import dotenv_values
 
 
 def genesis(db_file: str) -> None:
-
+    
     bots = crawler(db_file, queue := Queue())
 
     bots["consumer"].start()
@@ -20,14 +20,35 @@ def genesis(db_file: str) -> None:
     bots["capture_bot"].join()
     bots["intersection_bot"].join()
     bots["consumer"].join()
-    # queue.join()
+    queue.join()
 
     if [] != (failures := bots["failures"]):
         raise Exception(failures)
 
 
 if __name__ == "__main__":
-    
+
+    # counter = 0
+
+    # while True:
+    #     print(0)
+    #     try:
+    #         print(1)
+
+    #         if counter > 2:
+    #             break
+
+    #         counter += 1
+    #     except Exception as ex:
+    #         print(ex)
+
+    #     finally:
+    #         print(2)
+
+
+
+    # exit()
+
     failed: int = 0
 
     try:

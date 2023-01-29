@@ -1,6 +1,5 @@
 import threading
 import logging
-# from enum import Enum
 from time import sleep
 from random import random
 from queue import Queue, Empty
@@ -13,12 +12,6 @@ class CrawlerService(TypedDict):
     intersection_bot: threading.Thread
     consumer: threading.Thread
     failures: list[str]
-
-
-# class ThreadsBots(Enum):
-#     CAPTURE_BOT = 1
-#     INTERSECTION_BOT = 2
-#     CONSUMER = 3
 
 
 def crawler(db_file: str, queue: Queue) -> CrawlerService:
@@ -41,6 +34,8 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: done')
 
+        queue.task_done()
+
     def producer_intersection_bot(queue: Queue, code: float):
 
         label = "producer_intersection_bot"
@@ -55,6 +50,8 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: done')
 
+        queue.task_done()
+
     def consumer(queue: Queue, code: float, db_file: str):
 
         conn: Optional[Connection] = None
@@ -62,13 +59,15 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
         label = "Consumer"
 
         logging.info(f'{label}: running...')
-
+        
+        item: Optional[dict] = None
+        
         while True:
 
             try:
 
                 item = queue.get(block=False)
-
+                
                 if item is None:
                     break
 
@@ -81,25 +80,33 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
                 for key, value in item.items():
 
                     if 'CAPTURE_BOT' == key:
-                        cur.execute(capture_bot_query(), value)
-
+                        print("CAPTURE_BOT")
+                        pass
+                        # cur.execute(capture_bot_query(), value)
+                        
                     if 'INTERSECTION_BOT' == key:
-                        cur.execute(intersection_bot_query(), value)
-
+                        print("INTERSECTION_BOT")
+                        pass
+                        # cur.execute(intersection_bot_query(), value)
+                        
                 con.commit()
 
             except Empty:
                 logging.info(f'{label}: No messages, waiting...')
                 sleep(code)
                 continue
+            
+            else:
+                print("qsize:=", queue.qsize())
+                queue.task_done()
+                logging.info(f'{label}: done')
 
             finally:
                 if conn:
                     conn.close()
+                    logging.info(f'{label}: Close the connection manually')
 
-                queue.task_done()
 
-        logging.info(f'{label}: done')
 
     def thread_producer(fn: Callable[[Queue, float], None], code: float) -> threading.Thread:
         return threading.Thread(target=fn, args=(queue, code))
