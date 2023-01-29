@@ -11,7 +11,7 @@ from dotenv import dotenv_values
 
 def genesis(db_file: str) -> None:
 
-    bots = crawler(db_file, Queue())
+    bots = crawler(db_file, queue := Queue())
 
     bots["consumer"].start()
     bots["capture_bot"].start()
@@ -20,6 +20,7 @@ def genesis(db_file: str) -> None:
     bots["capture_bot"].join()
     bots["intersection_bot"].join()
     bots["consumer"].join()
+    # queue.join()
 
     if [] != (failures := bots["failures"]):
         raise Exception(failures)

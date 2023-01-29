@@ -1,11 +1,12 @@
 import threading
 import logging
-from enum import Enum
+# from enum import Enum
 from time import sleep
 from random import random
 from queue import Queue, Empty
 from sqlite3 import Connection, connect
 from typing import Callable, List, TypedDict, Optional
+from infra.querys.bot_query import capture_bot_query, intersection_bot_query
 
 class CrawlerService(TypedDict):
     capture_bot: threading.Thread
@@ -14,10 +15,10 @@ class CrawlerService(TypedDict):
     failures: list[str]
 
 
-class ThreadsBots(Enum):
-    CAPTURE_BOT = 1
-    INTERSECTION_BOT = 2
-    CONSUMER = 3
+# class ThreadsBots(Enum):
+#     CAPTURE_BOT = 1
+#     INTERSECTION_BOT = 2
+#     CONSUMER = 3
 
 
 def crawler(db_file: str, queue: Queue) -> CrawlerService:
@@ -32,7 +33,7 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: running...')
 
-        queue.put({ThreadsBots.CAPTURE_BOT: [code]})
+        queue.put({'CAPTURE_BOT': [code]})
 
         sleep(code)
 
@@ -46,7 +47,7 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: running...')
 
-        queue.put({label: [code]})
+        queue.put({'INTERSECTION_BOT': [code]})
 
         sleep(code)
 
@@ -65,13 +66,27 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
         while True:
 
             try:
+
                 item = queue.get(block=False)
 
-                # con = connect(db_file)
-                
-                # cur = con.cursor()
+                if item is None:
+                    break
 
-                # conn.commit()
+                logging.info(f'Message:{item}')
+
+                con = connect(db_file)
+                
+                cur = con.cursor()
+
+                for key, value in item.items():
+
+                    if 'CAPTURE_BOT' == key:
+                        cur.execute(capture_bot_query(), value)
+
+                    if 'INTERSECTION_BOT' == key:
+                        cur.execute(intersection_bot_query(), value)
+
+                con.commit()
 
             except Empty:
                 logging.info(f'{label}: No messages, waiting...')
@@ -82,12 +97,7 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
                 if conn:
                     conn.close()
 
-            if item is None:
-                break
-
-            logging.info(f'Message:{item}')
-
-        queue.task_done()
+                queue.task_done()
 
         logging.info(f'{label}: done')
 

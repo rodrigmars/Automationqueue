@@ -15,7 +15,7 @@ def create_tables(path_db: str) -> tuple | None:
         con.cursor().executescript("""
             BEGIN
 
-            CREATE TABLE IF NOT EXISTS AUTOMATE_ENTROPY_DATA_TEMP1(
+            CREATE TABLE IF NOT EXISTS AUTOMATE_ENTROPY_DATA_CAPTURE(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 CODE TEXT NOT NULL UNIQUE,
                 STATUS INTEGER NOT NULL,
@@ -23,7 +23,7 @@ def create_tables(path_db: str) -> tuple | None:
                 PRODUCT_MODEL TEXT NOT NULL
             );
             
-            CREATE TABLE IF NOT EXISTS AUTOMATE_ENTROPY_DATA_TEMP2(
+            CREATE TABLE IF NOT EXISTS AUTOMATE_ENTROPY_DATA_INTERSECTION(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 CODE TEXT NOT NULL UNIQUE,
                 STATUS INTEGER NOT NULL,
