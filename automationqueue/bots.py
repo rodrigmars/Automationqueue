@@ -44,8 +44,6 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
 
         queue.put({'INTERSECTION_BOT': [code]})
 
-        sleep(code)
-
         queue.put(None)
 
         logging.info(f'{label}: done')
@@ -63,49 +61,54 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
         item: Optional[dict] = None
         
         while True:
-
+            
             try:
-
                 item = queue.get(block=False)
-                
+
                 if item is None:
                     break
-
-                logging.info(f'Message:{item}')
-
-                con = connect(db_file)
                 
-                cur = con.cursor()
-
-                for key, value in item.items():
-
-                    if 'CAPTURE_BOT' == key:
-                        print("CAPTURE_BOT")
-                        pass
-                        # cur.execute(capture_bot_query(), value)
-                        
-                    if 'INTERSECTION_BOT' == key:
-                        print("INTERSECTION_BOT")
-                        pass
-                        # cur.execute(intersection_bot_query(), value)
-                        
-                con.commit()
+                queue.task_done()
 
             except Empty:
                 logging.info(f'{label}: No messages, waiting...')
                 sleep(code)
                 continue
-            
             else:
-                print("qsize:=", queue.qsize())
-                queue.task_done()
-                logging.info(f'{label}: done')
+                
+                try:
+                    
 
-            finally:
-                if conn:
-                    conn.close()
-                    logging.info(f'{label}: Close the connection manually')
+                    logging.info(f'Message:{item}')
 
+                    con = connect(db_file)
+                    
+                    cur = con.cursor()
+
+                    for key, value in item.items():
+
+                        if 'CAPTURE_BOT' == key:
+                            print("CAPTURE_BOT")
+                            pass
+                            # cur.execute(capture_bot_query(), value)
+                            
+                        if 'INTERSECTION_BOT' == key:
+                            print("INTERSECTION_BOT")
+                            pass
+                            # cur.execute(intersection_bot_query(), value)
+                            
+                    con.commit()
+
+                    logging.info(f'{label}: done')
+
+                except Exception as e:
+                    print(e)
+
+                finally:
+                    
+                    if conn:
+                        conn.close()
+                        logging.info(f'{label}: Close the connection manually')
 
 
     def thread_producer(fn: Callable[[Queue, float], None], code: float) -> threading.Thread:
