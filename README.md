@@ -9,3 +9,5 @@ The app module uses mocked locks simulating waiting processing with time.sleep, 
 Model for sending messages between different threads
 
 ![alt text](https://github.com/rodrigmars/Automationqueue/blob/main/images/teste_thread.drawio.png?raw=true)
+
+2 BOTS workers operating in parallel writing to the queue and a worker consumer for IO write operations. The challenge involves managing the queues for simple inserts using a relational database, the strategy is to apply the use of queues without adopting explicit locks in the program.
