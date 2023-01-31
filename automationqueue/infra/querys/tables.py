@@ -8,12 +8,14 @@ def create_tables(path_db: str) -> tuple | None:
 
     con: Optional[Connection] = None
 
+    print(">>>>>>>>>>>>>>>>>>>>>>>", path_db)
+
     try:
 
         con = connect(path_db)
 
         con.cursor().executescript("""
-            BEGIN
+            BEGIN;
 
             CREATE TABLE IF NOT EXISTS AUTOMATE_ENTROPY_DATA_CAPTURE(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,4 +43,4 @@ def create_tables(path_db: str) -> tuple | None:
         if con:
             con.close()
 
-        return None if () != failed else failed
+        return failed if () != failed else None

@@ -26,7 +26,11 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
 
         logging.info(f'{label}: running...')
 
-        queue.put({'CAPTURE_BOT': [code]})
+        status = 1
+        price = 15.5
+        product_model = "teste"
+
+        queue.put({'CAPTURE_BOT': [code, status, price, product_model]})
 
         sleep(code)
 
@@ -88,12 +92,11 @@ def crawler(db_file: str, queue: Queue) -> CrawlerService:
                     for key, value in item.items():
 
                         if 'CAPTURE_BOT' == key:
-                            print("CAPTURE_BOT")
-                            pass
-                            # cur.execute(capture_bot_query(), value)
+                            print("CAPTURE_BOT", value)
+                            cur.execute(capture_bot_query(), value)
                             
                         if 'INTERSECTION_BOT' == key:
-                            print("INTERSECTION_BOT")
+                            print("INTERSECTION_BOT", value)
                             pass
                             # cur.execute(intersection_bot_query(), value)
                             

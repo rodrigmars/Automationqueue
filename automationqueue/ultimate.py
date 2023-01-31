@@ -41,7 +41,6 @@ if __name__ == "__main__":
         if not (db_file := config.get("DB_FILE")) is None:
             if not (err := create_tables(db_file)) is None:
                 raise Exception(err)
-
             genesis(db_file)
 
         else:
